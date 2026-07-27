@@ -1,0 +1,38 @@
+name: Claude usage weekly report
+
+on:
+  schedule:
+    # 06:00 UTC = 07:00 Europe/Paris in winter (CET), 08:00 in summer (CEST).
+    # GitHub Actions cron has no timezone/DST support, so this drifts by 1h
+    # from Mar-Oct. Adjust if you need it pinned to exactly 7h local year-round.
+    - cron: "0 6 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  run-report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run usage report
+        env:
+          ANTHROPIC_ADMIN_API_KEY: ${{ secrets.ANTHROPIC_ADMIN_API_KEY }}
+        run: python3 claude_usage_weekly.py
+
+      - name: Commit updated report
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add claude_usage_weekly.json
+          git diff --cached --quiet || git commit -m "chore: update claude usage report"
+          git push
