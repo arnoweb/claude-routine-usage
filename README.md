@@ -70,11 +70,7 @@ qu'affiche l'écran `/usage` de Claude Code.
   `0 6 * * *` = 6h UTC) + déclenchable manuellement (`workflow_dispatch`).
   Commit le JSON mis à jour dans le repo à chaque run.
 - **`run_local.sh`** — wrapper appelé par launchd : `git pull --rebase`,
-  exécution du script avec l'interpréteur Python qui a `requests` installé,
-  puis commit + push si le fichier a changé.
-- **`~/Library/LaunchAgents/com.arnaudbreton.claude-usage-local.plist`**
-  (hors repo, propre à la machine) — déclenche `run_local.sh` tous les jours
-  à 7h heure locale.
+  exécution du script, puis commit + push si le fichier a changé.
 - **`.env`** (non commité) — `ANTHROPIC_ADMIN_API_KEY`, utilisé par le run
   local. Le run cloud utilise le secret GitHub du même nom.
 
@@ -93,6 +89,106 @@ qu'affiche l'écran `/usage` de Claude Code.
 export ANTHROPIC_ADMIN_API_KEY="sk-ant-admin-..."
 python3 claude_usage_weekly.py            # écrit claude_usage_weekly.json
 python3 claude_usage_weekly.py --days 14  # fenêtre personnalisée
+```
+
+## Mise en place de l'automatisation
+
+Deux mécanismes à configurer séparément — un cloud (GitHub Actions), un local
+(launchd) — car aucun des deux ne peut couvrir toutes les données à lui seul.
+
+### 1. Partie cloud — GitHub Actions
+
+Le workflow (`.github/workflows/usage-report.yml`) est déjà présent dans le
+repo, il ne manque que le secret :
+
+1. Sur la page du repo → **Settings → Secrets and variables → Actions**
+2. **New repository secret** → nom `ANTHROPIC_ADMIN_API_KEY` → coller la clé
+3. Le job tourne alors automatiquement tous les jours à 6h00 UTC (voir le
+   `cron` dans le fichier de workflow). Pour tester sans attendre : onglet
+   **Actions** → sélectionner le workflow → **Run workflow**.
+
+Le job checkout le repo, installe `requirements.txt`, lance le script avec
+la clé en variable d'environnement, puis commit+push le JSON s'il a changé
+(`permissions: contents: write` dans le workflow autorise ce push).
+
+### 2. Partie locale — launchd (macOS)
+
+`session_usage` et `model_usage_7d` ne peuvent être produits que sur la
+machine où tourne `claude login` — il faut donc un planificateur **local**
+qui déclenche `run_local.sh` chaque jour. launchd est l'équivalent macOS de
+cron, mais capable de rattraper l'exécution manquée au réveil de la machine.
+
+**a) Créer le fichier plist**, par exemple
+`~/Library/LaunchAgents/com.<toi>.claude-usage-local.plist` (remplace
+`<toi>` par un identifiant à toi — c'est juste un label local, sans lien
+avec le repo) :
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.<toi>.claude-usage-local</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/chemin/absolu/vers/ce/repo/run_local.sh</string>
+    </array>
+
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key><integer>7</integer>
+        <key>Minute</key><integer>0</integer>
+    </dict>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string>/chemin/absolu/vers/ce/repo/launchd.log</string>
+    <key>StandardErrorPath</key>
+    <string>/chemin/absolu/vers/ce/repo/launchd.error.log</string>
+
+    <key>RunAtLoad</key>
+    <false/>
+</dict>
+</plist>
+```
+
+> ⚠️ Le champ `PATH` doit lister les dossiers où se trouvent tes binaires
+> `python3`, `git` et `claude` — launchd n'hérite **pas** du `PATH` de ton
+> shell interactif. Vérifie avec `which python3 git claude` et ajoute les
+> dossiers correspondants si besoin.
+
+**b) Charger et tester le job :**
+
+```bash
+launchctl load ~/Library/LaunchAgents/com.<toi>.claude-usage-local.plist
+
+# Vérifier qu'il est bien enregistré (statut 0 = OK)
+launchctl list | grep claude-usage
+
+# Déclencher un run immédiat sans attendre 7h
+launchctl start com.<toi>.claude-usage-local
+
+# Suivre les logs
+cat launchd.log launchd.error.log
+```
+
+Le job reste chargé après redémarrage du Mac. S'il est éteint/endormi à 7h,
+l'exécution du jour est simplement sautée — seul `session_usage` /
+`model_usage_7d` sont impactés, la partie Admin API reste à jour via le
+cloud.
+
+**Pour désactiver le job local** :
+
+```bash
+launchctl unload ~/Library/LaunchAgents/com.<toi>.claude-usage-local.plist
 ```
 
 ## Limites connues
