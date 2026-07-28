@@ -1,3 +1,5 @@
 .env
 __pycache__/
 *.pyc
+launchd.log
+launchd.error.log
