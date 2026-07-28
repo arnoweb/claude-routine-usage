@@ -1,5 +1,7 @@
 # Claude Routine Usage
 
+*[English version](README.en.md)*
+
 Suivi quotidien automatisé de la consommation Claude (API pay-as-you-go **et**
 abonnement Pro/Max), écrit dans un unique fichier JSON consommable en HTTP par
 une routine externe (ex. un "CTO Daily Brief").
