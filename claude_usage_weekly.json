@@ -1,9 +1,16 @@
 {
-  "generated_at": "2026-07-27T18:42:52.523181+00:00",
-  "window_start": "2026-07-20T18:42:52Z",
-  "window_end": "2026-07-27T18:42:52Z",
+  "generated_at": "2026-07-28T08:15:57.405937+00:00",
+  "window_start": "2026-07-21T08:15:57Z",
+  "window_end": "2026-07-28T08:15:57Z",
   "total_input_tokens": 0,
   "total_output_tokens": 0,
   "total_tokens": 0,
-  "total_cost_usd": 0.0
+  "total_cost_usd": 0.0,
+  "session_usage": {
+    "session_used_pct": 11,
+    "session_resets_at": "Jul 28 at 2:30pm (Europe/Paris)",
+    "week_used_pct": 36,
+    "week_resets_at": "Jul 31 at 9pm (Europe/Paris)",
+    "captured_at": "2026-07-28T08:15:57.405937+00:00"
+  }
 }
