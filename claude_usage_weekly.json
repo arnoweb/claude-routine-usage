@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-08-01T08:22:58.281938+00:00",
-  "window_start": "2026-07-25T08:22:58Z",
-  "window_end": "2026-08-01T08:22:58Z",
+  "generated_at": "2026-08-02T05:06:06.638884+00:00",
+  "window_start": "2026-07-26T05:06:06Z",
+  "window_end": "2026-08-02T05:06:06Z",
   "total_input_tokens": 0,
   "total_output_tokens": 0,
   "total_tokens": 0,
@@ -16,20 +16,20 @@
   "model_usage_7d": {
     "claude-sonnet-5": {
       "display_name": "Sonnet 5",
-      "input_tokens": 435180807,
-      "output_tokens": 1156835,
-      "pct_of_output": 64.8
+      "input_tokens": 234074826,
+      "output_tokens": 689589,
+      "pct_of_output": 78.6
     },
     "claude-sonnet-4-6": {
       "display_name": "Sonnet 4.6",
-      "input_tokens": 54068880,
-      "output_tokens": 626819,
-      "pct_of_output": 35.1
+      "input_tokens": 20847350,
+      "output_tokens": 187229,
+      "pct_of_output": 21.3
     },
     "claude-haiku-4-5-20251001": {
       "display_name": "Haiku 4.5",
-      "input_tokens": 341609,
-      "output_tokens": 2293,
+      "input_tokens": 215095,
+      "output_tokens": 765,
       "pct_of_output": 0.1
     }
   }
