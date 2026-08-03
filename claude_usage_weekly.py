@@ -26,6 +26,7 @@ import argparse
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 from datetime import datetime, timedelta, timezone
@@ -93,6 +94,36 @@ def fetch_report(endpoint: str, api_key: str, starting_at: str, ending_at: str) 
     return results
 
 
+_COMMON_CLAUDE_LOCATIONS = [
+    os.path.expanduser("~/.claude/local/claude"),
+    os.path.expanduser("~/.local/bin/claude"),
+    os.path.expanduser("~/.npm-global/bin/claude"),
+    os.path.expanduser("~/bin/claude"),
+    "/opt/homebrew/bin/claude",
+    "/usr/local/bin/claude",
+    "/usr/local/lib/node_modules/.bin/claude",
+]
+
+
+def _resolve_claude_bin() -> str | None:
+    """Find the `claude` CLI binary without relying on launchd's (minimal,
+    non-interactive-shell) PATH. Checked in order: explicit override,
+    PATH lookup, then a list of common install locations."""
+    override = os.environ.get("CLAUDE_CLI_PATH")
+    if override and os.path.isfile(override) and os.access(override, os.X_OK):
+        return override
+
+    found = shutil.which("claude")
+    if found:
+        return found
+
+    for candidate in _COMMON_CLAUDE_LOCATIONS:
+        if os.path.isfile(candidate) and os.access(candidate, os.X_OK):
+            return candidate
+
+    return None
+
+
 def get_session_usage() -> dict | None:
     """Best-effort: capture Claude Pro/Max session+week quota via the local
     Claude Code CLI (`claude -p "/usage"`). Only works on a machine that is
@@ -100,21 +131,50 @@ def get_session_usage() -> dict | None:
     None (and the caller keeps whatever was last recorded) if the CLI isn't
     installed, isn't authenticated, or the output format doesn't match.
     Undocumented CLI behavior - may break on a future Claude Code release.
+
+    launchd jobs do NOT inherit your interactive shell's PATH, so a bare
+    "claude" often can't be found even though it works fine from a Terminal.
+    To resolve the binary robustly we try, in order: $CLAUDE_CLI_PATH (set
+    this in .env if the auto-detection below doesn't work for your setup),
+    shutil.which("claude") (works if PATH does include it), then a list of
+    common install locations.
     """
+    claude_bin = _resolve_claude_bin()
+    if not claude_bin:
+        print(
+            "WARNING: `claude` CLI not found (checked $CLAUDE_CLI_PATH, PATH, "
+            "and common install locations) - session_usage/model_usage_7d will "
+            "keep their last recorded value. Run `which claude` in a normal "
+            "Terminal and set CLAUDE_CLI_PATH in .env to that path.",
+            file=sys.stderr,
+        )
+        return None
+
     try:
         result = subprocess.run(
-            ["claude", "-p", "/usage"],
+            [claude_bin, "-p", "/usage"],
             capture_output=True, text=True, timeout=60,
         )
-    except (FileNotFoundError, subprocess.TimeoutExpired):
+    except (FileNotFoundError, subprocess.TimeoutExpired) as exc:
+        print(f"WARNING: `{claude_bin} -p /usage` failed to run: {exc}", file=sys.stderr)
         return None
     if result.returncode != 0:
+        print(
+            f"WARNING: `{claude_bin} -p /usage` exited with code {result.returncode}. "
+            f"stderr: {result.stderr.strip()[:300]}",
+            file=sys.stderr,
+        )
         return None
 
     text = result.stdout
     session_match = re.search(r"Current session:\s*(\d+)% used\s*\S\s*resets (.+)", text)
     week_match = re.search(r"Current week \(all models\):\s*(\d+)% used\s*\S\s*resets (.+)", text)
     if not session_match or not week_match:
+        print(
+            "WARNING: `claude -p /usage` ran but output didn't match the expected "
+            f"format (CLI may have changed). Raw output:\n{text[:500]}",
+            file=sys.stderr,
+        )
         return None
 
     return {

@@ -202,3 +202,40 @@ launchctl unload ~/Library/LaunchAgents/com.<toi>.claude-usage-local.plist
   machine** — pas claude.ai, pas les autres appareils.
 - Le cron GitHub Actions est en UTC fixe (pas de fuseau horaire/DST géré) :
   6h00 UTC = 7h Paris en hiver, 8h en été.
+
+## Dépannage — `session_usage` reste bloqué sur une vieille date
+
+Symptôme : `generated_at` avance à chaque run mais `session_usage.captured_at`
+reste figé. Cause quasi certaine : le run **local** (launchd) échoue
+silencieusement à trouver le binaire `claude` — launchd n'hérite pas du
+`PATH` de ton shell interactif (voir l'avertissement dans la section plist
+ci-dessus), donc `subprocess.run(["claude", ...])` lève `FileNotFoundError`,
+la fonction retourne `None`, et le script garde la dernière valeur connue
+dans le JSON sans erreur visible.
+
+Depuis la version actuelle du script, `get_session_usage()` :
+1. essaie `$CLAUDE_CLI_PATH` si défini dans `.env` ;
+2. sinon `shutil.which("claude")` (fonctionne si `PATH` est correct) ;
+3. sinon une liste d'emplacements d'installation courants ;
+4. si rien ne marche, écrit un `WARNING` explicite sur stderr (donc dans
+   `launchd.error.log`) au lieu d'échouer en silence.
+
+Pour corriger :
+
+```bash
+which claude   # dans un Terminal normal
+```
+
+Colle le chemin retourné dans `.env` :
+
+```
+CLAUDE_CLI_PATH=/chemin/vers/claude
+```
+
+Puis vérifie que ça fonctionne :
+
+```bash
+launchctl start com.<toi>.claude-usage-local
+cat launchd.error.log   # ne doit plus contenir de WARNING "claude CLI not found"
+cat claude_usage_weekly.json   # captured_at doit être à l'heure du run
+```
