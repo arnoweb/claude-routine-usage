@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-08-06T08:37:52.676498+00:00",
-  "window_start": "2026-07-30T08:37:52Z",
-  "window_end": "2026-08-06T08:37:52Z",
+  "generated_at": "2026-08-07T05:04:26.978989+00:00",
+  "window_start": "2026-07-31T05:04:26Z",
+  "window_end": "2026-08-07T05:04:26Z",
   "total_input_tokens": 0,
   "total_output_tokens": 0,
   "total_tokens": 0,
@@ -14,17 +14,17 @@
     "captured_at": "2026-08-03T17:35:28.278802+00:00"
   },
   "model_usage_7d": {
+    "claude-sonnet-4-6": {
+      "display_name": "Sonnet 4.6",
+      "input_tokens": 14155501,
+      "output_tokens": 87673,
+      "pct_of_output": 61.3
+    },
     "claude-sonnet-5": {
       "display_name": "Sonnet 5",
       "input_tokens": 18384393,
       "output_tokens": 55407,
-      "pct_of_output": 63.4
-    },
-    "claude-sonnet-4-6": {
-      "display_name": "Sonnet 4.6",
-      "input_tokens": 3952783,
-      "output_tokens": 31923,
-      "pct_of_output": 36.6
+      "pct_of_output": 38.7
     }
   }
 }
