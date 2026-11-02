@@ -3,36 +3,49 @@ name: Claude usage weekly report
 on:
   schedule:
     # 06:00 UTC = 07:00 Europe/Paris in winter (CET), 08:00 in summer (CEST).
-    # GitHub Actions cron has no timezone/DST support, so this drifts by 1h
-    # from Mar-Oct. Adjust if you need it pinned to exactly 7h local year-round.
     - cron: "0 6 * * *"
   workflow_dispatch: {}
 
 permissions:
   contents: write
 
+concurrency:
+  group: usage-report
+  cancel-in-progress: false
+
 jobs:
   run-report:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Run usage report
+      # The JSON is also pushed by the local Mac run: never merge it.
+      # Each attempt restarts from origin/main (the script keeps the local
+      # fields already in the file) and retries if the push loses a race.
+      - name: Run usage report and push
         env:
           ANTHROPIC_ADMIN_API_KEY: ${{ secrets.ANTHROPIC_ADMIN_API_KEY }}
-        run: python3 claude_usage_weekly.py
-
-      - name: Commit updated report
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add claude_usage_weekly.json
-          git diff --cached --quiet || git commit -m "chore: update claude usage report"
-          git push
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git reset --hard origin/main
+            python3 claude_usage_weekly.py
+            git add claude_usage_weekly.json
+            if git diff --cached --quiet; then exit 0; fi
+            git commit -m "chore: update claude usage report"
+            if git push origin HEAD:main; then exit 0; fi
+            echo "push rejected (attempt $attempt), retrying"
+            sleep 15
+          done
+          exit 1

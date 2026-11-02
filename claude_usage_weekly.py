@@ -167,8 +167,14 @@ def get_session_usage() -> dict | None:
         return None
 
     text = result.stdout
-    session_match = re.search(r"Current session:\s*(\d+)% used\s*\S\s*resets (.+)", text)
-    week_match = re.search(r"Current week \(all models\):\s*(\d+)% used\s*\S\s*resets (.+)", text)
+    # "resets ..." is absent when the counter is at 0% (nothing to reset yet),
+    # so it must stay optional, otherwise the whole capture is dropped.
+    session_match = re.search(
+        r"Current session:\s*(\d+)% used(?:[ \t]*\S[ \t]*resets ([^\n]+))?", text
+    )
+    week_match = re.search(
+        r"Current week \(all models\):\s*(\d+)% used(?:[ \t]*\S[ \t]*resets ([^\n]+))?", text
+    )
     if not session_match or not week_match:
         print(
             "WARNING: `claude -p /usage` ran but output didn't match the expected "
@@ -179,9 +185,9 @@ def get_session_usage() -> dict | None:
 
     return {
         "session_used_pct": int(session_match.group(1)),
-        "session_resets_at": session_match.group(2).strip(),
+        "session_resets_at": (session_match.group(2) or "").strip() or None,
         "week_used_pct": int(week_match.group(1)),
-        "week_resets_at": week_match.group(2).strip(),
+        "week_resets_at": (week_match.group(2) or "").strip() or None,
     }
 
 
