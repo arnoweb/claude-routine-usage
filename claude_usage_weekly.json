@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-11-14T13:06:50.136731+00:00",
-  "window_start": "2026-11-07T13:06:50Z",
-  "window_end": "2026-11-14T13:06:50Z",
+  "generated_at": "2026-11-15T06:00:03.879459+00:00",
+  "window_start": "2026-11-08T06:00:03Z",
+  "window_end": "2026-11-15T06:00:03Z",
   "total_input_tokens": 0,
   "total_output_tokens": 0,
   "total_tokens": 0,
@@ -16,8 +16,8 @@
   "model_usage_7d": {
     "claude-opus-5-5": {
       "display_name": "claude-opus-5-5",
-      "input_tokens": 5408940816,
-      "output_tokens": 17567130,
+      "input_tokens": 7329381554,
+      "output_tokens": 24731844,
       "pct_of_output": 100.0
     }
   }
