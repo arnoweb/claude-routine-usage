@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-11-19T15:23:16.807882+00:00",
-  "window_start": "2026-11-12T15:23:16Z",
-  "window_end": "2026-11-19T15:23:16Z",
+  "generated_at": "2026-11-20T06:00:04.943582+00:00",
+  "window_start": "2026-11-13T06:00:04Z",
+  "window_end": "2026-11-20T06:00:04Z",
   "total_input_tokens": 0,
   "total_output_tokens": 0,
   "total_tokens": 0,
@@ -9,15 +9,15 @@
   "session_usage": {
     "session_used_pct": 0,
     "session_resets_at": null,
-    "week_used_pct": 32,
+    "week_used_pct": 59,
     "week_resets_at": "Nov 20 at 7:59pm (Europe/Paris)",
-    "captured_at": "2026-11-17T06:03:48.865946+00:00"
+    "captured_at": "2026-11-20T06:00:04.943582+00:00"
   },
   "model_usage_7d": {
     "claude-opus-5-5": {
       "display_name": "claude-opus-5-5",
-      "input_tokens": 7474752914,
-      "output_tokens": 27626287,
+      "input_tokens": 5832783309,
+      "output_tokens": 22828256,
       "pct_of_output": 100.0
     }
   }
