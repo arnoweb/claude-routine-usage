@@ -1,29 +1,29 @@
 {
-  "generated_at": "2026-11-22T14:13:36.277497+00:00",
-  "window_start": "2026-11-15T14:13:36Z",
-  "window_end": "2026-11-22T14:13:36Z",
+  "generated_at": "2026-11-23T06:00:03.211966+00:00",
+  "window_start": "2026-11-16T06:00:03Z",
+  "window_end": "2026-11-23T06:00:03Z",
   "total_input_tokens": 0,
   "total_output_tokens": 0,
   "total_tokens": 0,
   "total_cost_usd": 0.0,
   "session_usage": {
     "session_used_pct": 0,
-    "session_resets_at": "Nov 22 at 9:39am (Europe/Paris)",
-    "week_used_pct": 12,
-    "week_resets_at": "Nov 27 at 7:59pm (Europe/Paris)",
-    "captured_at": "2026-11-22T06:22:32.090193+00:00"
+    "session_resets_at": null,
+    "week_used_pct": 27,
+    "week_resets_at": "Nov 27 at 8pm (Europe/Paris)",
+    "captured_at": "2026-11-23T06:00:03.211966+00:00"
   },
   "model_usage_7d": {
     "claude-opus-5-5": {
       "display_name": "claude-opus-5-5",
-      "input_tokens": 4719781778,
-      "output_tokens": 17146365,
+      "input_tokens": 6162874332,
+      "output_tokens": 21732545,
       "pct_of_output": 100.0
     },
     "claude-haiku-5-5": {
       "display_name": "claude-haiku-5-5",
-      "input_tokens": 146240,
-      "output_tokens": 4261,
+      "input_tokens": 228097,
+      "output_tokens": 7267,
       "pct_of_output": 0.0
     }
   }
